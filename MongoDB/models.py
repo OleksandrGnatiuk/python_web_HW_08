@@ -1,6 +1,9 @@
 from mongoengine import *
 connect(host="mongodb+srv://userweb10:567234@cluster0.oqyfihy.mongodb.net/?retryWrites=true&w=majority")
 
+
+
+
 class Author(Document):
     fullname = StringField(max_length=250)
     born_date = StringField(max_length=50)
