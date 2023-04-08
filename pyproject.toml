@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 mongoengine = "^0.27.0"
+redis-lru = "^0.1.2"
 
 
 [build-system]
