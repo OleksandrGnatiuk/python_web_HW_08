@@ -17,11 +17,11 @@ def main():
             try:
                 command, value = user_command.split(":")
                 command, value = command.strip(), value.strip()
-                cache.set(command, value)
+                client.set(command, value)
 
                 if command == "name":
                     quote_list = []
-                    value = cache.get(command)
+                    value = client.get(command).decode()
                     uuid = Author.objects(fullname__startswith=value.title())[0]
                     quotes = Quote.objects(author=uuid)
                     if quotes:
@@ -31,14 +31,14 @@ def main():
 
                 elif command == "tag":
                     quote_list = []
-                    value = cache.get(command)
+                    value = client.get(command).decode()
                     for quote in Quote.objects(tags__startswith=value):
                         quote_list.append(quote.quote)
                     print(*quote_list, sep="\n")
 
                 elif command == "tags":
                     quote_list = []
-                    value = cache.get(command)
+                    value = client.get(command).decode()
                     for quote in Quote.objects(tags__in=value.split(",")):
                         quote_list.append(quote.quote)
                     print(*quote_list, sep="\n")
