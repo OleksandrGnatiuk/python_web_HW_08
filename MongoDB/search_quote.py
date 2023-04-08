@@ -16,12 +16,13 @@ def main():
         else:
             try:
                 command, value = user_command.split(":")
-                cache.set(command.strip(), value.strip())
+                command, value = command.strip(), value.strip()
+                cache.set(command, value)
 
                 if command == "name":
                     quote_list = []
                     value = cache.get(command)
-                    uuid = Author.objects(fullname__startswith=value.strip().title())[0]
+                    uuid = Author.objects(fullname__startswith=value.title())[0]
                     quotes = Quote.objects(author=uuid)
                     if quotes:
                         for quote in quotes:
@@ -38,7 +39,7 @@ def main():
                 elif command == "tags":
                     quote_list = []
                     value = cache.get(command)
-                    for quote in Quote.objects(tags__in=value.strip().split(",")):
+                    for quote in Quote.objects(tags__in=value.split(",")):
                         quote_list.append(quote.quote)
                     print(*quote_list, sep="\n")
                 else:
