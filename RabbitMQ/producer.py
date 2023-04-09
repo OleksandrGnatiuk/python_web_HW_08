@@ -1,3 +1,5 @@
+import random
+
 import pika
 from random import randint
 from faker import Faker
@@ -12,9 +14,11 @@ connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost', port=5672, credentials=credentials))
 channel = connection.channel()
 
-channel.exchange_declare(exchange='inform_contacts', exchange_type='direct')
+# channel.exchange_declare(exchange='inform_contacts', exchange_type='direct')
 channel.queue_declare(queue='send_email', durable=True)
-channel.queue_bind(exchange='inform_contacts', queue='send_email')
+# channel.queue_bind(exchange='inform_contacts', queue='send_email')
+channel.queue_declare(queue='send_sms', durable=True)
+# channel.queue_bind(exchange='inform_contacts', queue='send_sms')
 
 
 class Contact(Document):
@@ -25,27 +29,38 @@ class Contact(Document):
 
 
 def main():
-    for _ in range(0, randint(10, 15)):
+    for _ in range(15):
         contact = Contact(
-            fullname = fake.name(),
-            email = fake.email(),
-            phone = fake.phone(),
-            is_sent = False
-            ).save()
+            fullname=fake.name(),
+            email=fake.email(),
+            phone=fake.phone_number(),
+            is_sent=False
+        ).save()
         message = str(contact.id).encode()
 
-        channel.basic_publish(
-            exchange='inform_contacts',
-            routing_key='send_email',
-            body=message,
-            properties=pika.BasicProperties(
-                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-            ))
-        contact.is_sent = True
-        print(f"E-mail:{contact.email} for contact {contact.fullname} was added to queue")
+        method_lst = ['email', 'sms']
+        method = random.choice(method_lst)
+        if method == 'email':
+            channel.basic_publish(
+                exchange='inform_contacts',
+                routing_key='send_email',
+                body=message,
+                properties=pika.BasicProperties(
+                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                ))
+            print(f"E-mail:{contact.email} for contact {contact.fullname} was added to queue")
+        else:
+            channel.basic_publish(
+                exchange='inform_contacts',
+                routing_key='send_sms',
+                body=message,
+                properties=pika.BasicProperties(
+                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                ))
+            print(f"SMS for phone number {contact.phone}, for contact {contact.fullname} was added to queue")
+
     connection.close()
 
 
 if __name__ == '__main__':
     main()
-    
